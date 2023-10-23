@@ -1,0 +1,34 @@
+.body {
+  margin: 0;
+  padding: 0;
+}
+.main-header {
+  width: 100%;
+  height: 3.5 rem;
+  padding: 0 1.5rem;
+  background-color: grey;
+}
+.main-header__nav {
+  height: 50px;
+  display: flex;
+  align-items: center;
+}
+.main-header__item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+.main-header__item {
+  margin: 0 1rem;
+  font-family: sans-serif;
+
+  padding: 0;
+}
+.main-header__item a {
+  color: #000000;
+}
+
+.main-header__item a:hover {
+  color: #fff;
+}
