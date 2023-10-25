@@ -1,24 +1,71 @@
-const path = require("path");
+const Product = require("../models/product");
 
-const express = require("express");
+exports.getAddProduct = (req, res, next) => {
+  res.render("admin/edit-product", {
+    pageTitle: "Add Product",
+    path: "/admin/add-product",
+    editing: false,
+  });
+};
 
-const adminController = require("../controllers/admin");
+exports.postAddProduct = (req, res, next) => {
+  const title = req.body.title;
+  const imageUrl = req.body.imageUrl;
+  const price = req.body.price;
+  const description = req.body.description;
+  const product = new Product(null, title, imageUrl, description, price);
+  product.save();
+  res.redirect("/");
+};
 
-const router = express.Router();
+exports.getEditProduct = (req, res, next) => {
+  const editMode = req.query.edit;
+  if (!editMode) {
+    return res.redirect("/");
+  }
+  const prodId = req.params.productId;
+  Product.findById(prodId, (product) => {
+    if (!product) {
+      return res.redirect("/");
+    }
+    res.render("admin/edit-product", {
+      pageTitle: "Edit Product",
+      path: "/admin/edit-product",
+      editing: editMode,
+      product: product,
+    });
+  });
+};
 
-// /admin/add-product => GET
-router.get("/add-product", adminController.getAddProduct);
+exports.postEditProduct = (req, res, next) => {
+  const prodId = req.body.productId;
+  const updatedTitle = req.body.title;
+  const updatedPrice = req.body.price;
+  const updatedImageUrl = req.body.imageUrl;
+  const updatedDesc = req.body.description;
+  const updatedProduct = new Product(
+    prodId,
+    updatedTitle,
+    updatedImageUrl,
+    updatedDesc,
+    updatedPrice
+  );
+  updatedProduct.save();
+  res.redirect("/admin/products");
+};
 
-// /admin/products => GET
-router.get("/products", adminController.getProducts);
+exports.getProducts = (req, res, next) => {
+  Product.fetchAll((products) => {
+    res.render("admin/products", {
+      prods: products,
+      pageTitle: "Admin Products",
+      path: "/admin/products",
+    });
+  });
+};
 
-// /admin/add-product => POST
-router.post("/add-product", adminController.postAddProduct);
-
-router.get("/edit-product/:productId", adminController.getEditProduct);
-
-router.post("/edit-product", adminController.postEditProduct);
-
-router.post("/delete-product/:productId", adminController.deleteProduct);
-
-module.exports = router;
+exports.deleteProduct = (req, res, next) => {
+  const prodId = req.params.productId;
+  Product.deleteProductById(prodId);
+  res.redirect("/admin/products");
+};
