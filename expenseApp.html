@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Manager</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <style>
+      .container {
+        margin-top: 30px;
+        border: 2px solid black;
+      }
+      .formExp {
+        padding: 15px;
+      }
+      .fields {
+        margin-left: 100px;
+      }
+      .btn {
+        margin-left: 45px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <form class="formExp">
+        <div class="fields">
+          <label for="amount">Amount</label>
+          <input type="text" id="amount" name="amount" />
+
+          <label for="desc">Description</label>
+          <input type="text" id="desc" name="desc" />
+
+          <label for="expCat">Expense Category</label>
+          <select name="expCat" id="expCat">
+            <option value="grocery">Grocery</option>
+            <option value="food">Food</option>
+            <option value="travel">Travel</option>
+            <option value="entertainment">Entertainment</option>
+          </select>
+          <button
+            class="btn btn-primary btn-sm"
+            id="btnExp"
+            onclick="return createNewExpense()"
+          >
+            Add Expense
+          </button>
+        </div>
+      </form>
+      <div id="expenseData"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.5.1/dist/axios.min.js"></script>
+
+    <script>
+      var allExpenses = [];
+
+      function createNewExpense() {
+        const amount = document.getElementById("amount").value;
+        const description = document.getElementById("desc").value;
+        const category = document.getElementById("expCat").value;
+        // console.log(expAmount, expDesc, expCat);
+
+        let expObj = { amount: parseFloat(amount), description, category };
+        let data = JSON.stringify(expObj);
+
+        let config = {
+          method: "post",
+          maxBodyLength: Infinity,
+          url: "http://localhost:3000/newExpense",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: data,
+        };
+
+        axios
+          .request(config)
+          .then((response) => {
+            console.log(JSON.stringify(response.data.newExpense));
+            showAllExpenses();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+
+        return false;
+      }
+
+      async function showAllExpenses() {
+        let config = {
+          method: "get",
+          maxBodyLength: Infinity,
+          url: "http://localhost:3000/getExpenses",
+          headers: {},
+        };
+
+        await axios
+          .request(config)
+          .then((response) => {
+            allExpenses = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+
+      window.addEventListener("DOMContentLoaded", async () => {
+        await showAllExpenses();
+        let parent = document.getElementById("expenseData");
+
+        for (let i = 0; i < allExpenses.length; i++) {
+          let data = document.createElement("label");
+          data.textContent =
+            allExpenses[i].amount +
+            " " +
+            allExpenses[i].description +
+            " " +
+            allExpenses[i].category;
+
+          parent.appendChild(data);
+
+          //cancel
+          let deleteExpense = document.createElement("input");
+          deleteExpense.type = "button";
+          deleteExpense.value = "Delete";
+          deleteExpense.className = "btn btn-danger m-1 btn-sm";
+
+          //edit
+          let editExpense = document.createElement("input");
+          editExpense.type = "button";
+          editExpense.value = "Edit";
+          editExpense.className = "btn btn-primary m-1 btn-sm";
+
+          data.appendChild(deleteExpense);
+          data.appendChild(editExpense);
+
+          deleteExpense.onclick = async () => {
+            console.log(allExpenses[i].id);
+            const expenseID = allExpenses[i].id;
+            await axios
+              .delete(`http://localhost:3000/deleteExpense/${expenseID}`)
+              .then((res) => {
+                console.log(res);
+                const texth4 = document.createElement("h4");
+                parent.appendChild(texth4);
+                texth4.textContent = res.data.message;
+              })
+              .catch((err) => console.log(err));
+          };
+
+          editExpense.onclick = async () => {
+            document.getElementById("amount").value = allExpenses[i].amount;
+            document.getElementById("desc").value = allExpenses[i].description;
+            document.getElementById("expCat").value = allExpenses[i].category;
+            parent.removeChild(data);
+
+            const expenseID = allExpenses[i].id;
+            await axios
+              .delete(`http://localhost:3000/deleteExpense/${expenseID}`)
+              .then((res) => {
+                console.log(res);
+              })
+              .catch((err) => console.log(err));
+          };
+        }
+      });
+    </script>
+  </body>
+</html>
