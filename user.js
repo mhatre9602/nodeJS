@@ -1,17 +1,16 @@
-// const path = require("path");
+const Sequelize = require("sequelize");
 
-const express = require("express");
+const sequelize = require("../util/database");
 
-const patientController = require("../controllers/patient");
+const User = sequelize.define("user", {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: true,
+    primaryKey: true,
+  },
+  name: Sequelize.STRING,
+  email: Sequelize.STRING,
+});
 
-const router = express.Router();
-
-router.delete("/delete-booking/:bookingID", patientController.deleteBooking);
-
-// router.post("/new-booking", patientController.createBooking);
-
-router.get("/get-booking", patientController.getBookings);
-
-// router.get("/booking/:bookingId", patientController.getBooking);
-
-module.exports = router;
+module.exports = User;
